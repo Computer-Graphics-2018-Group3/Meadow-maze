@@ -1,0 +1,34 @@
+﻿生成启动时间为 2018/5/27 22:54:05。
+     1>项目“G:\大三下\计算机图形学\期末项目\HW4\HW4\HW4.vcxproj”在节点 2 上(Build 个目标)。
+     1>ClCompile:
+         D:\VS2015\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /sdl /Od /Oy- /D _MBCS /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"Debug\\" /Fd"Debug\vc140.pdb" /Gd /TP /analyze- /errorReport:prompt Skybox.cpp
+         Skybox.cpp
+     1>g:\大三下\计算机图形学\期末项目\hw4\hw4\learnopengl\shader.h(65): warning C4101: “infoLog”: 未引用的局部变量
+     1>g:\大三下\计算机图形学\期末项目\hw4\hw4\learnopengl\shader.h(64): warning C4101: “success”: 未引用的局部变量
+     1>g:\大三下\计算机图形学\期末项目\hw4\hw4\learnopengl\maze.h(210): warning C4244: “初始化”: 从“double”转换到“int”，可能丢失数据
+     1>g:\大三下\计算机图形学\期末项目\hw4\hw4\learnopengl\maze.h(289): warning C4244: “初始化”: 从“double”转换到“int”，可能丢失数据
+     1>g:\大三下\计算机图形学\期末项目\hw4\hw4\skybox.cpp(32): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+     1>g:\大三下\计算机图形学\期末项目\hw4\hw4\skybox.cpp(33): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+     1>g:\大三下\计算机图形学\期末项目\hw4\hw4\skybox.cpp(276): warning C4305: “初始化”: 从“double”到“float”截断
+     1>g:\大三下\计算机图形学\期末项目\hw4\hw4\skybox.cpp(290): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+     1>g:\大三下\计算机图形学\期末项目\hw4\hw4\skybox.cpp(440): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
+     1>g:\大三下\计算机图形学\期末项目\hw4\hw4\skybox.cpp(441): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
+     1>g:\大三下\计算机图形学\期末项目\hw4\hw4\skybox.cpp(445): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+     1>g:\大三下\计算机图形学\期末项目\hw4\hw4\skybox.cpp(446): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+     1>g:\大三下\计算机图形学\期末项目\hw4\hw4\skybox.cpp(448): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
+     1>g:\大三下\计算机图形学\期末项目\hw4\hw4\skybox.cpp(449): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
+     1>g:\大三下\计算机图形学\期末项目\hw4\hw4\skybox.cpp(468): warning C4244: “参数”: 从“double”转换到“float”，可能丢失数据
+       Link:
+         D:\VS2015\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"G:\大三下\计算机图形学\期末项目\HW4\Debug\HW4.exe" /INCREMENTAL /NOLOGO glfw3.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /Debug /PDB:"G:\大三下\计算机图形学\期末项目\HW4\Debug\HW4.pdb" /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"G:\大三下\计算机图形学\期末项目\HW4\Debug\HW4.lib" /MACHINE:X86 Debug\glad.obj
+         Debug\imgui.obj
+         Debug\imgui_demo.obj
+         Debug\imgui_draw.obj
+         Debug\imgui_impl_glfw_gl3.obj
+         Debug\stb_image_compile.obj
+         Debug\Skybox.obj
+         HW4.vcxproj -> G:\大三下\计算机图形学\期末项目\HW4\Debug\HW4.exe
+     1>已完成生成项目“G:\大三下\计算机图形学\期末项目\HW4\HW4\HW4.vcxproj”(Build 个目标)的操作。
+
+已成功生成。
+
+已用时间 00:00:08.84
