@@ -225,7 +225,8 @@ public:
 		glBindVertexArray(lineVAO);
 		glDrawArrays(GL_POINTS, 0, 1);
 		glBindVertexArray(0);
-		
+		glDeleteVertexArrays(1, &lineVAO);
+		glDeleteBuffers(1, &lineVBO);
 	}
 
 // Åö×²¼ì²â
