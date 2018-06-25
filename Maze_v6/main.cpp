@@ -537,11 +537,11 @@ int main()
 	}
 
 	glDeleteVertexArrays(1, &cubeVAO);
-	glDeleteVertexArrays(1, &skyboxVAO);
-	glDeleteBuffers(1, &cubeVBO);
-	glDeleteBuffers(1, &skyboxVAO);
-	glDeleteVertexArrays(1, &planeVAO);
-	glDeleteVertexArrays(1, &planeVBO);
+    glDeleteVertexArrays(1, &skyboxVAO);
+    glDeleteVertexArrays(1, &planeVAO);
+    glDeleteBuffers(1, &cubeVBO);
+    glDeleteBuffers(1, &skyboxVBO);
+    glDeleteBuffers(1, &planeVBO);
 	glfwTerminate();
 
 	delete ourMaze;

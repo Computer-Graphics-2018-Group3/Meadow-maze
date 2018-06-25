@@ -1,0 +1,44 @@
+﻿生成启动时间为 2018/6/25 23:25:27。
+     1>项目“G:\大三下\计算机图形学\期末项目\Maze\Maze\Maze.vcxproj”在节点 2 上(Build 个目标)。
+     1>ClCompile:
+         D:\VS2015\VC\bin\CL.exe /c /Zi /nologo /W3 /WX- /sdl /O2 /Oi /Oy- /GL /D _MBCS /Gm- /EHsc /MD /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"Release\\" /Fd"Release\vc140.pdb" /Gd /TP /analyze- /errorReport:prompt main.cpp
+         main.cpp
+     1>g:\大三下\计算机图形学\期末项目\maze\maze\learnOpenGL\Camera.h(76): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+     1>g:\大三下\计算机图形学\期末项目\maze\maze\learnOpenGL\shader.h(64): warning C4101: “infoLog”: 未引用的局部变量
+     1>g:\大三下\计算机图形学\期末项目\maze\maze\learnOpenGL\shader.h(63): warning C4101: “success”: 未引用的局部变量
+     1>g:\大三下\计算机图形学\期末项目\maze\maze\learnOpenGL\Maze.h(196): warning C4305: “初始化”: 从“double”到“float”截断
+     1>g:\大三下\计算机图形学\期末项目\maze\maze\learnOpenGL\Maze.h(267): warning C4305: “初始化”: 从“double”到“float”截断
+     1>g:\大三下\计算机图形学\期末项目\maze\maze\learnOpenGL\Maze.h(367): warning C4244: “初始化”: 从“double”转换到“int”，可能丢失数据
+     1>g:\大三下\计算机图形学\期末项目\maze\maze\learnOpenGL\Maze.h(369): warning C4244: “=”: 从“double”转换到“int”，可能丢失数据
+     1>g:\大三下\计算机图形学\期末项目\maze\maze\learnOpenGL\Maze.h(449): warning C4244: “初始化”: 从“double”转换到“int”，可能丢失数据
+     1>g:\大三下\计算机图形学\期末项目\maze\maze\learnOpenGL\Maze.h(474): warning C4244: “=”: 从“int”转换到“float”，可能丢失数据
+     1>g:\大三下\计算机图形学\期末项目\maze\maze\learnOpenGL\Maze.h(476): warning C4244: “=”: 从“int”转换到“float”，可能丢失数据
+     1>g:\大三下\计算机图形学\期末项目\maze\maze\learnOpenGL\wave.h(46): warning C4305: “初始化”: 从“double”到“const float”截断
+     1>main.cpp(42): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+     1>main.cpp(43): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+     1>main.cpp(422): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+     1>main.cpp(679): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
+     1>main.cpp(680): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
+     1>main.cpp(684): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+     1>main.cpp(685): warning C4244: “初始化”: 从“double”转换到“float”，可能丢失数据
+     1>main.cpp(687): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
+     1>main.cpp(688): warning C4244: “=”: 从“double”转换到“float”，可能丢失数据
+     1>main.cpp(709): warning C4244: “参数”: 从“double”转换到“float”，可能丢失数据
+       Link:
+         D:\VS2015\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"G:\大三下\计算机图形学\期末项目\Maze\Release\Maze.exe" /NOLOGO legacy_stdio_definitions.lib "libfftw3f-3.lib" opengl32.lib glfw3.lib glew32s.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib assimp.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /Debug /PDB:"G:\大三下\计算机图形学\期末项目\Maze\Release\Maze.pdb" /OPT:REF /OPT:ICF /LTCG:incremental /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"G:\大三下\计算机图形学\期末项目\Maze\Release\Maze.lib" /MACHINE:X86 /SAFESEH Release\glad.obj
+         Release\stb_image_compile.obj
+         Release\stdafx.obj
+         Release\wave.obj
+         Release\main.obj
+     1>LINK : warning LNK4098: 默认库“MSVCRTD”与其他库的使用冲突；请使用 /NODEFAULTLIB:library
+         正在生成代码
+         0 of 1243 functions ( 0.0%) were compiled, the rest were copied from previous compilation.
+           0 functions were new in current compilation
+           0 functions had inline decision re-evaluated but remain unchanged
+         已完成代码的生成
+         Maze.vcxproj -> G:\大三下\计算机图形学\期末项目\Maze\Release\Maze.exe
+     1>已完成生成项目“G:\大三下\计算机图形学\期末项目\Maze\Maze\Maze.vcxproj”(Build 个目标)的操作。
+
+已成功生成。
+
+已用时间 00:00:16.24
