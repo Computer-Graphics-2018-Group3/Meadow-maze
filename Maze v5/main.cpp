@@ -428,7 +428,6 @@ int main()
         cubeShader.setVec3("lightPos", lightPos);
         cubeShader.setVec3("viewPos", camera.Position);
         cubeShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
-        //cubeShader.setBool("isOrthoProj", false);
 		
 		//绑定纹理 & 绘制地板
 		glActiveTexture(GL_TEXTURE0);
