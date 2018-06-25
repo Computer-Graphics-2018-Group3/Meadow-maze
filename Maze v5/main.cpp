@@ -1,7 +1,7 @@
 //#define GLEW_STATIC
 //#include <GL/glew.h>
 #include "glad/glad.h"
-#include <GL/glfw3.h>
+#include <GL\glfw3.h>
 #include "imgui/imgui.h"
 #include "imgui/imgui_impl_glfw_gl3.h"
 #include "glm/glm.hpp"
@@ -13,6 +13,7 @@
 #include "learnOpenGL\stb_image.h"
 #include "learnOpenGL\Maze.h"
 #include "learnOpenGL\model.h"
+#include "learnOpenGL\texture.h"
 #include "assimp\Importer.hpp"
 #include "assimp\scene.h"
 #include "assimp\postprocess.h"
@@ -26,12 +27,13 @@ void processInput(GLFWwindow *window, Maze* & our_maze);
 unsigned int loadTexture(const char *path);
 unsigned int loadCubemap(vector<std::string> faces);
 void RenderScene(Shader &shader, unsigned int & planeVAO, unsigned int & cubeVAO, Maze* & our_maze, bool useTexture, unsigned int cubeTexture = 0, unsigned int normalMap = 0);
+void DrawWalkingMan(Shader &walkingmanShader, GLuint &VAO, GLuint &textureID);
 
-//´°¿Ú´óĞ¡
+//çª—å£å¤§å°
 int SCR_WIDTH = 1280;
 int SCR_HEIGHT = 720;
 
-//¶¨ÒåÉãÏñ»ú
+//å®šä¹‰æ‘„åƒæœº
 Camera camera(glm::vec3(0.0f, 3.0f, 3.0f));
 float lastX = (float)SCR_WIDTH / 2.0;
 float lastY = (float)SCR_HEIGHT / 2.0;
@@ -39,53 +41,53 @@ float lastY = (float)SCR_HEIGHT / 2.0;
 float objectSize = 0.04f;
 bool firstMouse = true;
 
-//¶¨Òå¹âÔ´
+//å®šä¹‰å…‰æº
 //glm::vec3 lightPos(-21.0f, 35.0f, -35.0f);
 glm::vec3 lightPos(0.0f, 0.3f, 1.0f);
-//Ö¡ÓëÖ¡Ê±¼ä²î
+//å¸§ä¸å¸§æ—¶é—´å·®
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-//ÓÃÓÚ¼ÇÂ¼Êó±ê°´ÏÂ²¢ÒÆ¶¯
+//ç”¨äºè®°å½•é¼ æ ‡æŒ‰ä¸‹å¹¶ç§»åŠ¨
 //bool mouseMoveView = false;
 bool mouseMoveView = true;
-//¿ØÖÆÃÔ¹¬Ğ¡µØÍ¼µÄÏÔÊ¾
+//æ§åˆ¶è¿·å®«å°åœ°å›¾çš„æ˜¾ç¤º
 int mazeMap = 1;
 bool M_KEY_ACT = true;
 
 // set up vertex data (and buffer(s)) and configure vertex attributes
 // ------------------------------------------------------------------
 float cubeVertices[] = {
-	// ¶¥µã				  //·¨ÏòÁ¿			  //ÎÆÀí×ø±ê  //ÇĞÏß			 //¸±ÇĞÏß
-	//ºó
+	// é¡¶ç‚¹				  //æ³•å‘é‡			  //çº¹ç†åæ ‡  //åˆ‡çº¿			 //å‰¯åˆ‡çº¿
+	//å
 	-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
 	0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
 	0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
 	0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
 	-0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
 	-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-	//Ç°
+	//å‰
 	-0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f, 0.0f, 0.0f,  1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
 	0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f, 1.0f, 0.0f,  1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
 	0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f,  1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
 	0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f, 1.0f, 1.0f,  1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
 	-0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f, 0.0f, 1.0f,  1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
 	-0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f, 0.0f, 0.0f,  1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f,
-	//×ó
+	//å·¦
 	-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f,  0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f,
 	-0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f, 1.0f, 1.0f,  0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f,
 	-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f, 1.0f, 0.0f,  0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f,
 	-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f, 1.0f, 0.0f,  0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f,
 	-0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f, 0.0f, 0.0f,  0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f,
 	-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f, 0.0f, 1.0f,  0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-	//ÓÒ
+	//å³
 	0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f,  0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f,
 	0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f, 1.0f, 1.0f,  0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f,
 	0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f,  0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f,
 	0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f, 1.0f, 0.0f,  0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f,
 	0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f, 0.0f, 0.0f,  0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f,
 	0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f, 0.0f, 1.0f,  0.0f, 0.0f, -1.0f, 0.0f, 1.0f, 0.0f,
-	//ÏÂ
+	//ä¸‹
 	-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f,
 	0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f,
 	0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f,
@@ -93,7 +95,7 @@ float cubeVertices[] = {
 	-0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f,
 	-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f,
 
-	//ÉÏ
+	//ä¸Š
 	-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f,
 	0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f, 1.0f, 1.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f,
 	0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f, 1.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f,
@@ -145,7 +147,7 @@ float skyboxVertices[] = {
 	-1.0f, -1.0f,  1.0f,
 	1.0f, -1.0f,  1.0f
 };
-//µØ°åÆ½Ãæ
+//åœ°æ¿å¹³é¢
 float planeVertices[]{
 	25.0f, -0.5f,  25.0f, 0.0f, 1.0f, 0.0f, 25.0f,  0.0f,
 	-25.0f, -0.5f, -25.0f, 0.0f, 1.0f, 0.0f,  0.0f, 25.0f,
@@ -166,10 +168,36 @@ float quadVertices[] = {   // vertex attributes for a quad that fills the entire
 	1.0f,  1.0f,  1.0f, 1.0f
 };
 
+// walking_man
+static const GLfloat walkingManVertices[] = {
+	-1.0f, -1.0f, -1.0f,
+	-1.0f, -1.0f, 1.0f,
+	-1.0f, 1.0f, -1.0f,
+	-1.0f, 1.0f, 1.0f,
+	1.0f, -1.0f, -1.0f,
+	1.0f, -1.0f, 1.0f,
+	1.0f, 1.0f, -1.0f,
+	1.0f, 1.0f, 1.0f,
+};
+static const GLuint walkingManIndices[] = {
+	0, 1, 2,
+	1, 2, 3,
+	1, 0, 5,
+	0, 5, 4,
+	5, 6, 7,
+	4, 5, 6,
+	2, 3, 7,
+	6, 2, 7,
+	1, 5, 3,
+	3, 5, 7,
+	0, 2, 4,
+	2, 4, 6,
+};
+
 
 int main()
 {
-	//³õÊ¼»¯
+	//åˆå§‹åŒ–
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -179,7 +207,7 @@ int main()
 	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
-	//´´½¨´°¿Ú
+	//åˆ›å»ºçª—å£
 	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Maze", NULL, NULL);
 	if (window == NULL)
 	{
@@ -187,10 +215,10 @@ int main()
 		glfwTerminate();
 		return -1;
 	}
-	//½«´Ë´°¿ÚµÄÉÏÏÂÎÄÉèÖÃÎªµ±Ç°Ïß³ÌµÄÖ÷ÉÏÏÂÎÄ
+	//å°†æ­¤çª—å£çš„ä¸Šä¸‹æ–‡è®¾ç½®ä¸ºå½“å‰çº¿ç¨‹çš„ä¸»ä¸Šä¸‹æ–‡
 	glfwMakeContextCurrent(window);
 	
-	//GLAD¼ÓÔØ
+	//GLADåŠ è½½
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
 		std::cout << "Failed to initialize GLAD" << std::endl;
@@ -198,25 +226,26 @@ int main()
 	}
 
 
-	//»Øµ÷º¯Êı
+	//å›è°ƒå‡½æ•°
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-	glfwSetCursorPosCallback(window, mouseMove);		//Êó±êÒÆ¶¯
-	//glfwSetMouseButtonCallback(window, mouseClick);		//Êó±êµã»÷
-	glfwSetScrollCallback(window, scroll_callback);		//Êó±ê¹öÂÖ
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);	//Òş²ØÊó±ê
+	glfwSetCursorPosCallback(window, mouseMove);		//é¼ æ ‡ç§»åŠ¨
+	//glfwSetMouseButtonCallback(window, mouseClick);		//é¼ æ ‡ç‚¹å‡»
+	glfwSetScrollCallback(window, scroll_callback);		//é¼ æ ‡æ»šè½®
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);	//éšè—é¼ æ ‡
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_MULTISAMPLE);
-	//×ÅÉ«Æ÷
+	//ç€è‰²å™¨
 	Shader cubeShader("shader/object_shader.vs", "shader/object_shader.fs");
 	Shader depthShader("shader/depth_shader.vs", "shader/depth_shader.fs");
 	Shader skyboxShader("shader/skybox.vs", "shader/skybox.fs");
 	Shader modelShader("shader/model_shader.vs", "shader/model_shader.fs");
 	Shader screenShader("shader/screen_shader.vs", "shader/screen_shader.fs");
+	Shader walkingmanShader("shader/walkingman.vs", "shader/walkingman.fs");
 
 	//Shader modelShader("shader/model_loading.vs", "shader/model_loading.fs");
 
-	//¼ÓÔØÄ£ĞÍ
+	//åŠ è½½æ¨¡å‹
 	//Model myModel("model/nanosuit/nanosuit.obj");
 	/*
 	Assimp::Importer importer;
@@ -248,11 +277,11 @@ int main()
 	glBindVertexArray(cubeVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, cubeVBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(cubeVertices), &cubeVertices, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)0);	//¶¥µãÎ»ÖÃ
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)0);	//é¡¶ç‚¹ä½ç½®
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(3 * sizeof(float)));	//·¨ÏòÁ¿
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(3 * sizeof(float)));	//æ³•å‘é‡
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(6 * sizeof(float)));	//ÎÆÀí
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(6 * sizeof(float)));	//çº¹ç†
 	glEnableVertexAttribArray(2);
 	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 14 * sizeof(float), (void*)(8 * sizeof(float)));	//tangent
 	glEnableVertexAttribArray(3);
@@ -275,11 +304,11 @@ int main()
 	glBindVertexArray(planeVAO);
 	glBindBuffer(GL_ARRAY_BUFFER, planeVBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(planeVertices), planeVertices, GL_STATIC_DRAW);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);	//¶¥µãÎ»ÖÃ
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);	//é¡¶ç‚¹ä½ç½®
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));	//·¨ÏòÁ¿
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));	//æ³•å‘é‡
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));	//ÎÆÀí
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));	//çº¹ç†
 	glEnableVertexAttribArray(2);
 	glBindVertexArray(0);
 	// setup screen VAO
@@ -294,13 +323,102 @@ int main()
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
 
+	// walking man VAO
+	GLuint walkingmanVAO;
+	glGenVertexArrays(1, &walkingmanVAO);
+	glBindVertexArray(walkingmanVAO);
+	GLuint walkingmanVBO;
+	glGenBuffers(1, &walkingmanVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, walkingmanVBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(walkingManVertices), walkingManVertices, GL_DYNAMIC_DRAW);
+	//EBOç´¢å¼•ç¼“å†²å¯¹è±¡ï¼Œç®¡ç†ç´¢å¼•æ•°ç»„çš„å†…å­˜
+	GLuint walkingmanEBO;
+	glGenBuffers(1, &walkingmanEBO);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, walkingmanEBO);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(walkingManIndices), walkingManIndices, GL_DYNAMIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, walkingmanVBO);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+	glEnableVertexAttribArray(0);
+	static GLfloat walkingmancolors[8 * 3];
+	for (int v = 0; v < 8; v++)
+	{
+		// walkingmancolors[3*v+0] = (float)rand()/RAND_MAX;
+		// walkingmancolors[3*v+1] = (float)rand()/RAND_MAX;
+		// walkingmancolors[3*v+2] = (float)rand()/RAND_MAX;
+		walkingmancolors[3 * v + 0] = 1.0f;
+		walkingmancolors[3 * v + 1] = 0.5f;
+		walkingmancolors[3 * v + 2] = 0.31f;
+	}
+	GLuint walkingmancolorbuffer;
+	glGenBuffers(1, &walkingmancolorbuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, walkingmancolorbuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(walkingmancolors), walkingmancolors, GL_STATIC_DRAW);
 
+	glBindBuffer(GL_ARRAY_BUFFER, walkingmancolorbuffer);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+	glEnableVertexAttribArray(1); walkingmancolorbuffer;
+	glGenBuffers(1, &walkingmancolorbuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, walkingmancolorbuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(walkingmancolors), walkingmancolors, GL_STATIC_DRAW);
 
-	//µØ°åÎÆÀí
+	glBindBuffer(GL_ARRAY_BUFFER, walkingmancolorbuffer);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+	glEnableVertexAttribArray(1);
+	/*
+	* ==================
+	* 2çº¹ç†ç¼“å†²æ•°æ®
+	* ==================
+	*/
+	GLuint textureID = loadtga("img/uvtemplate.tga");
+	//åæ ‡åœ¨0-1ä¹‹é—´
+	static GLfloat uv[] = {
+		1.0f, 0.0f,
+		0.0f, 1.0f,
+		0.0f, 1.0f,
+		0.0f, 0.0f,
+		1.0f, 1.0f,
+		1.0f, 1.0f,
+		1.0f, 1.0f,
+		1.0f, 0.0f,
+	};
+	GLuint uvbuffer;
+	glGenBuffers(1, &uvbuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(uv), uv, GL_DYNAMIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
+	glEnableVertexAttribArray(2);
+
+	/*
+	* ==================
+	* 3é¢çš„æ³•çº¿æ•°æ®
+	* ==================
+	*/
+	static GLfloat normals[] = {
+		-1.0f, -1.0f, -1.0f,
+		-1.0f, -1.0f, 1.0f,
+		-1.0f, 1.0f, -1.0f,
+		-1.0f, 1.0f, 1.0f,
+		1.0f, -1.0f, -1.0f,
+		1.0f, -1.0f, 1.0f,
+		1.0f, 1.0f, -1.0f,
+		1.0f, 1.0f, 1.0f,
+	};
+	GLuint normalbuffer;
+	glGenBuffers(1, &normalbuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(normals), normals, GL_STATIC_DRAW);
+
+	glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+	glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+	glEnableVertexAttribArray(3);
+
+	//åœ°æ¿çº¹ç†
 	unsigned int planeTexture = loadTexture("./img/plane4.jpg");
-	//ÃÔ¹¬Ç½
+	//è¿·å®«å¢™
 	unsigned int cubeTexture = loadTexture("./img/wall_test.jpg");
-	unsigned int normalMap = loadTexture("./img/wall_normal.jpg");	//·¨ÏßÎÆÀí
+	unsigned int normalMap = loadTexture("./img/wall_normal.jpg");	//æ³•çº¿çº¹ç†
 	vector<std::string> faces
 	{
 		"skybox/waterMountain/right.jpg",
@@ -354,65 +472,65 @@ int main()
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 
-	//Éî¶ÈÌùÍ¼µÄÖ¡»º³å
+	//æ·±åº¦è´´å›¾çš„å¸§ç¼“å†²
 	GLuint depthMapFBO;
 	glGenFramebuffers(1, &depthMapFBO);
-	//´´½¨Ò»¸ö2DÎÆÀí
+	//åˆ›å»ºä¸€ä¸ª2Dçº¹ç†
 	const GLuint SHADOW_WIDTH = 1024, SHADOW_HEIGHT = 1024;
 	GLuint depthMap;
 	glGenTextures(1, &depthMap);
 	glBindTexture(GL_TEXTURE_2D, depthMap);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);	//»·ÈÆ·½Ê½
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);	//ç¯ç»•æ–¹å¼
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 	GLfloat borderColor[] = { 1.0, 1.0, 1.0, 1.0 };
 	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);	//¹ıÂË·½Ê½
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);	//è¿‡æ»¤æ–¹å¼
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
-	glDrawBuffer(GL_NONE);	//²»½øĞĞÑÕÉ«Êı¾İµÄäÖÈ¾,ÎÒÃÇÖ»ĞèÒªÉî¶ÈĞÅÏ¢
+	glDrawBuffer(GL_NONE);	//ä¸è¿›è¡Œé¢œè‰²æ•°æ®çš„æ¸²æŸ“,æˆ‘ä»¬åªéœ€è¦æ·±åº¦ä¿¡æ¯
 	glReadBuffer(GL_NONE);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	//ÀûÓÃMazeÀàÉú³ÉÃÔ¹¬
+	//åˆ©ç”¨Mazeç±»ç”Ÿæˆè¿·å®«
 	Maze* our_maze = new Maze();
 	our_maze->Init(8, 10);
 	our_maze->autoGenerateMaze();
 
-	//äÖÈ¾Ñ­»·
+	//æ¸²æŸ“å¾ªç¯
 	while (!glfwWindowShouldClose(window))
 	{
-		// Ö¡µÄÊ±¼ä²î
+		// å¸§çš„æ—¶é—´å·®
 		float currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
 
-		// ¼üÅÌÊäÈë
+		// é”®ç›˜è¾“å…¥
 		processInput(window, our_maze);
 
 		// render
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		//1. ÒÔ¹âÔ´ÊÓ½ÇäÖÈ¾³¡¾°£¬µÃµ½Éî¶ÈÎÆÀíÍ¼£¨Í¸ÊÓÍ¶Ó°£©
+		//1. ä»¥å…‰æºè§†è§’æ¸²æŸ“åœºæ™¯ï¼Œå¾—åˆ°æ·±åº¦çº¹ç†å›¾ï¼ˆé€è§†æŠ•å½±ï¼‰
 		glm::mat4 lightProjection;
 		GLfloat near_plane = 40.0f, far_plane = 80.0f;
 		lightProjection = glm::perspective(glm::radians(50.0f), (float)SHADOW_WIDTH / (float)SHADOW_HEIGHT, near_plane, far_plane);
-		glm::mat4 lightView = glm::lookAt(lightPos, glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));	//´Ó¹âÔ´¿´Ïò³¡¾°ÖĞÑë
-		glm::mat4 lightSpaceMatrix = lightProjection * lightView;	//±ä»»¾ØÕóT
+		glm::mat4 lightView = glm::lookAt(lightPos, glm::vec3(0.0, 0.0, 0.0), glm::vec3(0.0, 1.0, 0.0));	//ä»å…‰æºçœ‹å‘åœºæ™¯ä¸­å¤®
+		glm::mat4 lightSpaceMatrix = lightProjection * lightView;	//å˜æ¢çŸ©é˜µT
 		depthShader.use();
 		depthShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
-		glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);	//äÖÈ¾Éî¶ÈÌùÍ¼
+		glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);	//æ¸²æŸ“æ·±åº¦è´´å›¾
 		glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
 		glClear(GL_DEPTH_BUFFER_BIT);
 		RenderScene(depthShader, planeVAO, cubeVAO,our_maze, false);
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-		//2. Õı³£äÖÈ¾ £¨Í¸ÊÓÍ¶Ó°+Phong Shading£©
+		//2. æ­£å¸¸æ¸²æŸ“ ï¼ˆé€è§†æŠ•å½±+Phong Shadingï¼‰
 		// draw scene as normal
 		glfwGetFramebufferSize(window, &SCR_WIDTH, &SCR_HEIGHT);
-		glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);	//ÖØÖÃÊÓ½Ç
+		glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);	//é‡ç½®è§†è§’
 		// draw scene as normal in multisampled buffers
 		glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
@@ -429,21 +547,24 @@ int main()
         cubeShader.setVec3("viewPos", camera.Position);
         cubeShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
 		
-		//°ó¶¨ÎÆÀí & »æÖÆµØ°å
+		//ç»‘å®šçº¹ç† & ç»˜åˆ¶åœ°æ¿
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, planeTexture);
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, depthMap);
-		//ÃÔ¹¬ & µØ°å
+		//è¿·å®« & åœ°æ¿
 		RenderScene(cubeShader, planeVAO, cubeVAO, our_maze, true, cubeTexture, normalMap);
-		//ÈËÌåÄ£ĞÍ
+		//äººä½“æ¨¡å‹
 		/*modelShader.use();
 		modelShader.setMat4("view", view);
 		modelShader.setMat4("projection", projection);
 		modelShader.setMat4("model", model);
 		myModel.Draw(modelShader);*/
 
-		//×îºó»æÖÆÌì¿ÕºĞ
+		// ç»˜åˆ¶ walking man
+		DrawWalkingMan(walkingmanShader, walkingmanVAO, textureID);
+
+		//æœ€åç»˜åˆ¶å¤©ç©ºç›’
 		// draw skybox as last
 		glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
 		skyboxShader.use();
@@ -475,7 +596,7 @@ int main()
 		glBindTexture(GL_TEXTURE_2D, screenTexture); // use the now resolved color attachment as the quad's texture
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
-		//äÖÈ¾
+		//æ¸²æŸ“
 		//ImGui::Render();
 		//ImGui_ImplGlfwGL3_RenderDrawData(ImGui::GetDrawData());
 		glfwSwapBuffers(window);
@@ -500,14 +621,14 @@ int main()
 void RenderScene(Shader &shader, unsigned int & planeVAO, unsigned int & cubeVAO, Maze* & our_maze, bool useTexture, unsigned int cubeTexture, unsigned int normalMap) {
 	
 
-	//µØ°å
+	//åœ°æ¿
 	shader.setInt("object", 1);
 	glm::mat4 model;
 	shader.setMat4("model", model);
 	glBindVertexArray(planeVAO);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 	glBindVertexArray(0);
-	//ÃÔ¹¬
+	//è¿·å®«
 	if (useTexture) {
 		shader.setInt("object", 2);
 		glActiveTexture(GL_TEXTURE0);
@@ -516,7 +637,7 @@ void RenderScene(Shader &shader, unsigned int & planeVAO, unsigned int & cubeVAO
 		glBindTexture(GL_TEXTURE_2D, normalMap);
 	}
 	our_maze->DrawMaze(shader, cubeVAO);
-	if (mazeMap == 0) {		//ÇëÇó°ïÖú£¬ÏÔÊ¾Ğ¡µØÍ¼
+	if (mazeMap == 0) {		//è¯·æ±‚å¸®åŠ©ï¼Œæ˜¾ç¤ºå°åœ°å›¾
 		our_maze->DrawMap(camera.Position.x, camera.Position.z);
 	}
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -528,12 +649,12 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 	glViewport(0, 0, width, height);
 }
 /*
- * WSADQE¼üÅÌ¿ØÖÆÏà»úÂşÓÎ
- * W & S£ºÇ°½ø&ºóÍË
- * A & D£º×óÓÒºáÒÆ
- * Q & E£º×óÓÒµ÷ÕûÃæÏò
- * ¿Õ¸ñ£ºÌøÆğ£¬¿ÉÒÔ¸ù¾İ°´ÏÂµÄÊ±¼ä³¤¶È¿ØÖÆÌøÆğµÄ¸ß¶È
- * M: ÏÔÊ¾/Òş²ØĞ¡µØÍ¼
+ * WSADQEé”®ç›˜æ§åˆ¶ç›¸æœºæ¼«æ¸¸
+ * W & Sï¼šå‰è¿›&åé€€
+ * A & Dï¼šå·¦å³æ¨ªç§»
+ * Q & Eï¼šå·¦å³è°ƒæ•´é¢å‘
+ * ç©ºæ ¼ï¼šè·³èµ·ï¼Œå¯ä»¥æ ¹æ®æŒ‰ä¸‹çš„æ—¶é—´é•¿åº¦æ§åˆ¶è·³èµ·çš„é«˜åº¦
+ * M: æ˜¾ç¤º/éšè—å°åœ°å›¾
 */
 
 
@@ -573,7 +694,7 @@ void processInput(GLFWwindow *window, Maze* & our_maze)
 	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
 		camera.ProcessKeyboard(JUMP, deltaTime);
 	}
-	// ÏÔÊ¾orÒş²ØĞ¡µØÍ¼
+	// æ˜¾ç¤ºoréšè—å°åœ°å›¾
 	if (glfwGetKey(window, GLFW_KEY_M) == GLFW_PRESS) {
 		if (M_KEY_ACT) {
 			mazeMap = 1 - mazeMap;
@@ -586,8 +707,8 @@ void processInput(GLFWwindow *window, Maze* & our_maze)
 }
 
 /*
- * Êó±ê°´ÏÂ×ó¼ü²¢ÒÆ¶¯£ºÊÓ½ÇËæ×ÅÊó±ê¶øÒÆ¶¯
- * Êó±êËÉ¿ª£º²»ÒÆ¶¯
+ * é¼ æ ‡æŒ‰ä¸‹å·¦é”®å¹¶ç§»åŠ¨ï¼šè§†è§’éšç€é¼ æ ‡è€Œç§»åŠ¨
+ * é¼ æ ‡æ¾å¼€ï¼šä¸ç§»åŠ¨
 */
 void mouseMove(GLFWwindow* window, double xpos, double ypos)
 {
@@ -609,23 +730,23 @@ void mouseMove(GLFWwindow* window, double xpos, double ypos)
 	}
 }
 void mouseClick(GLFWwindow* window, int button, int action, int mods) {
-	//×ó¼ü°´ÏÂ
+	//å·¦é”®æŒ‰ä¸‹
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
-		mouseMoveView = true;	//¿ÉÒÔ½øĞĞÊÓ½ÇĞı×ªÁË
+		mouseMoveView = true;	//å¯ä»¥è¿›è¡Œè§†è§’æ—‹è½¬äº†
 		firstMouse = true;
 	}
-	//ËÉ¿ª
+	//æ¾å¼€
 	if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_RELEASE) {
-		mouseMoveView = false;	//²»¿ÉĞı×ª
+		mouseMoveView = false;	//ä¸å¯æ—‹è½¬
 	}
 }
-//Êó±ê¹öÂÖ¼à¿Ø
+//é¼ æ ‡æ»šè½®ç›‘æ§
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
 	camera.ProcessMouseScroll(yoffset);
 }
 
-//ÆÕÍ¨2DÎÆÀí
+//æ™®é€š2Dçº¹ç†
 unsigned int loadTexture(char const * path)
 {
 	unsigned int textureID;
@@ -645,9 +766,9 @@ unsigned int loadTexture(char const * path)
 		glBindTexture(GL_TEXTURE_2D, textureID);
 		glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
 		glGenerateMipmap(GL_TEXTURE_2D);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	//»·ÈÆ·½Ê½
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	//ç¯ç»•æ–¹å¼
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);	//¹ıÂË·½Ê½
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);	//è¿‡æ»¤æ–¹å¼
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 		stbi_image_free(data);
 	}
@@ -659,7 +780,7 @@ unsigned int loadTexture(char const * path)
 	return textureID;
 }
 
-//Ìì¿ÕºĞÎÆÀí
+//å¤©ç©ºç›’çº¹ç†
 // order:
 // +X (right)
 // -X (left)
@@ -694,4 +815,104 @@ unsigned int loadCubemap(vector<std::string> faces)
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 	return textureID;
+}
+
+void DrawWalkingMan(Shader &walkingmanShader, GLuint &VAO, GLuint &textureID) {
+	glm::mat4 projection = glm::perspective((float)(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+	glm::mat4 view = camera.GetViewMatrix();
+	walkingmanShader.use();
+	glBindVertexArray(VAO);
+	// çº¹ç†
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, textureID);
+	walkingmanShader.setInt("myTextureSampler", 0);
+
+	//Phong Lighting Modelï¼šç¯å¢ƒ(Ambient)ã€æ¼«åå°„(Diffuse)å’Œé•œé¢(Specular)å…‰ç…§
+	//å…‰çº¿é¢œè‰²ï¼Œè®¾ç½®ä¸ºç™½è‰²
+	walkingmanShader.setVec3("light.lightColor", 1.0f, 1.0f, 1.0f);
+	//å…‰æºä½ç½®ï¼Œä¸ºä¸–ç•Œåæ ‡ï¼Œå³åªç»è¿‡modelå˜æ¢
+	walkingmanShader.setVec3("light.lightPos", 5.0f, 5.0f, 5.0);
+	//æè´¨å‚æ•°
+	walkingmanShader.setFloat("material.ambientStrength", 0.3f);
+	walkingmanShader.setFloat("material.diffuse", 1.0f);
+	walkingmanShader.setFloat("material.specularStrength", 0.2f);
+	walkingmanShader.setFloat("material.shininess", 128);
+	//ç›¸æœºä½ç½®
+	walkingmanShader.setVec3("viewPos", camera.Position.x, camera.Position.y, camera.Position.z);
+
+	//èº«å­
+	glm::mat4 model_body = glm::mat4(1.0f);
+	model_body = glm::translate(model_body, glm::vec3(-1.5f, 0.8f, -3.0f));
+	model_body = glm::translate(model_body, glm::vec3(0.0f, 0.0f, 2 * (float)sin(glfwGetTime() / 4)));
+	model_body = glm::scale(model_body, glm::vec3(0.2f, 0.5f, 0.2f));
+	glm::mat4 MVP = projection * view * model_body;
+	walkingmanShader.setMat4("M", model_body);
+	walkingmanShader.setMat4("MVP", MVP);
+	glDrawElements(GL_TRIANGLES, 12 * 3, GL_UNSIGNED_INT, (void*)0);
+
+	//è„‘è¢‹
+	glm::vec4 neck(0.0f, 1.0f, 0.0f, 1.0f);
+	neck = model_body * neck;
+	glm::mat4 model_head = glm::mat4(1.0f);
+	model_head = glm::translate(model_head, glm::vec3(neck.x, neck.y + 0.3, neck.z));
+	model_head = glm::rotate(model_head, (float)sin(glfwGetTime() * 2) / 2, glm::vec3(0.0f, 0.0f, 1.0f));
+	model_head = glm::scale(model_head, glm::vec3(0.1f, 0.1f, 0.1f));
+	MVP = projection * view * model_head;
+	//é€šè¿‡ç´¢å¼•ï¼Œå¾€ç€è‰²å™¨è®¾ç½®Uniformå˜é‡çš„å€¼ï¼Œç±»å‹ä¸ºfloatå‘é‡
+	walkingmanShader.setMat4("M", model_head);
+	walkingmanShader.setMat4("MVP", MVP);
+	glDrawElements(GL_TRIANGLES, 12 * 3, GL_UNSIGNED_INT, (void*)0);
+
+
+	//å·¦æ‰‹
+	glm::vec4 shd_left(1.0f, 0.0f, 0.0f, 1.0f);
+	shd_left = model_body * shd_left;
+	glm::mat4 model_hand_left = glm::mat4(1.0f);
+	model_hand_left = glm::translate(model_hand_left, glm::vec3(shd_left.x + 0.1, shd_left.y + 0.5, shd_left.z));
+	model_hand_left = glm::rotate(model_hand_left, (float)sin(glfwGetTime() * 2), glm::vec3(1.0f, 0.0f, 0.5f));
+	model_hand_left = glm::translate(model_hand_left, glm::vec3(0.0f, -0.5f, 0.0f));
+	model_hand_left = glm::scale(model_hand_left, glm::vec3(0.1f, 0.5f, 0.1f));
+	MVP = projection * view * model_hand_left;
+	walkingmanShader.setMat4("M", model_hand_left);
+	walkingmanShader.setMat4("MVP", MVP);
+	glDrawElements(GL_TRIANGLES, 12 * 3, GL_UNSIGNED_INT, (void*)0);
+
+	//å³æ‰‹
+	glm::vec4 shd_right(-1.0f, 0.0f, 0.0f, 1.0f);
+	shd_right = model_body * shd_right;
+	glm::mat4 model_hand_right = glm::mat4(1.0f);
+	model_hand_right = glm::translate(model_hand_right, glm::vec3(shd_right.x - 0.1, shd_right.y + 0.5, shd_right.z));
+	model_hand_right = glm::rotate(model_hand_right, (float)sin(glfwGetTime() * 2), glm::vec3(-1.0f, 0.0f, -0.5f));
+	model_hand_right = glm::translate(model_hand_right, glm::vec3(0.0f, -0.5f, 0.0f));
+	model_hand_right = glm::scale(model_hand_right, glm::vec3(0.1f, 0.5f, 0.1f));
+	MVP = projection * view * model_hand_right;
+	walkingmanShader.setMat4("M", model_hand_right);
+	walkingmanShader.setMat4("MVP", MVP);
+	glDrawElements(GL_TRIANGLES, 12 * 3, GL_UNSIGNED_INT, (void*)0);
+
+	//å·¦è„š
+	glm::vec4 pp_left(0.5f, -1.0f, 0.0f, 1.0f);
+	pp_left = model_body * pp_left;
+	glm::mat4 model_leg_left = glm::mat4(1.0f);
+	model_leg_left = glm::translate(model_leg_left, glm::vec3(pp_left.x + 0.05, pp_left.y, pp_left.z));
+	model_leg_left = glm::rotate(model_leg_left, (float)sin(glfwGetTime() * 2), glm::vec3(-1.0f, 0.0f, 0.0f));
+	model_leg_left = glm::translate(model_leg_left, glm::vec3(0.0f, -0.5f, 0.0f));
+	model_leg_left = glm::scale(model_leg_left, glm::vec3(0.1f, 0.5f, 0.1f));
+	MVP = projection * view * model_leg_left;
+	walkingmanShader.setMat4("M", model_leg_left);
+	walkingmanShader.setMat4("MVP", MVP);
+	glDrawElements(GL_TRIANGLES, 12 * 3, GL_UNSIGNED_INT, (void*)0);
+
+	//å³è„š
+	glm::vec4 pp_right(-0.5f, -1.0f, 0.0f, 1.0f);
+	pp_right = model_body * pp_right;
+	glm::mat4 model_leg_right = glm::mat4(1.0f);
+	model_leg_right = glm::translate(model_leg_right, glm::vec3(pp_right.x - 0.05, pp_right.y, pp_right.z));
+	model_leg_right = glm::rotate(model_leg_right, (float)sin(glfwGetTime() * 2), glm::vec3(1.0f, 0.0f, 0.0f));
+	model_leg_right = glm::translate(model_leg_right, glm::vec3(0.0f, -0.5f, 0.0f));
+	model_leg_right = glm::scale(model_leg_right, glm::vec3(0.1f, 0.5f, 0.1f));
+	MVP = projection * view * model_leg_right;
+	walkingmanShader.setMat4("M", model_leg_right);
+	walkingmanShader.setMat4("MVP", MVP);
+	glDrawElements(GL_TRIANGLES, 12 * 3, GL_UNSIGNED_INT, (void*)0);
 }
