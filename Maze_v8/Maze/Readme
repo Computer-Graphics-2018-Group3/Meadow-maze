@@ -1,0 +1,3 @@
+改变水面模拟方式
+在main里改动poolMove和poolScale可以直接整个移动这个辣鸡池子
+camera.h里修改了一点点内容
