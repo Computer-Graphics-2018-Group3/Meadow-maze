@@ -18,8 +18,7 @@ enum Camera_Movement {
 // Default camera values
 const float YAW = -90.0f;
 const float PITCH = 0.0f;
-// const float SPEED = 1.2f;
-const float SPEED = 8.0f;
+const float SPEED = 1.2f;
 const float SENSITIVITY = 0.25f;
 const float ZOOM = 45.0f;
 
@@ -56,7 +55,7 @@ public:
         Yaw = yaw;
         Pitch = pitch;
         downSpeed = 0.0f;
-        acceleration = 0.012f;
+        acceleration = 0.028f;
         updateCameraVectors();
     }
     // Constructor with scalar values
@@ -91,6 +90,10 @@ public:
     void ProcessKeyboard(Camera_Movement direction, float deltaTime)
     {
         float velocity = MovementSpeed * deltaTime;
+        if (direction == JUMP && Position.y == 0.0f) {
+            downSpeed -= 0.0215f;
+            Position.y += 1e-6f;
+        }
         if (direction == FORWARD)
             Position += Front * velocity;
         if (direction == BACKWARD)
@@ -99,14 +102,6 @@ public:
             Position -= Right * velocity;
         if (direction == RIGHT)
             Position += Right * velocity;
-        if (direction == JUMP) {
-            Position += Up * velocity * 4.0f;
-        }
-        if (Position.y > 0.0f) {
-            downSpeed += velocity * 0.01f;
-        }
-        
-        //Position.y = 0.0f;
     }
 
     // Processes input received from a mouse input system. Expects the offset value in both the x and y direction.

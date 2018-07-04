@@ -223,6 +223,17 @@ glm::vec3 treePos[] = {
 	glm::vec3(25.0f, -0.5f, -10.0f) // 27
 };
 
+float stencilVertices[] = {
+    // positions          
+     5.0f, -0.5f,  5.0f,
+    -5.0f, -0.5f,  5.0f,
+    -5.0f, -0.5f, -5.0f,
+
+     5.0f, -0.5f,  5.0f,
+    -5.0f, -0.5f, -5.0f,
+     5.0f, -0.5f, -5.0f
+};
+
 // Cloth
 Cloth cloth;
 
@@ -275,7 +286,7 @@ int main()
 	// glfwSetMouseButtonCallback(window, mouse_callback);
 
     // tell GLFW to capture our mouse
-	// glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     // glad: load all OpenGL function pointers
     // ---------------------------------------
@@ -304,6 +315,7 @@ int main()
     // configure global opengl state
     // -----------------------------
     glEnable(GL_DEPTH_TEST);
+    glEnable(GL_STENCIL_TEST);
 
     // build and compile shaders
     // -------------------------
@@ -315,6 +327,7 @@ int main()
 	Shader modelShader("shader/model_shader.vs", "shader/model_shader.fs");
 	Shader particleShader("shader/particle_shader.vs", "shader/particle_shader.fs");
 	Shader textShader("shader/text_shader.vs", "shader/text_shader.fs");
+	Shader stencilShader("shader/stencil_shader.vs", "shader/stencil_shader.fs");
 
 	// shader configuration
 	// --------------------
@@ -387,6 +400,17 @@ int main()
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+
+    // setup stencil VAO
+    unsigned int stencilVAO, stencilVBO;
+    glGenVertexArrays(1, &stencilVAO);
+    glGenBuffers(1, &stencilVBO);
+    glBindVertexArray(stencilVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, stencilVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(stencilVertices), &stencilVertices, GL_STATIC_DRAW);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glBindVertexArray(0);
 
     // Load textures
 	unsigned int planeTexture = loadTexture("skybox/ame_siege/siege_dn.tga");
@@ -577,7 +601,7 @@ int main()
 
 		// Render
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 		
         // Render depth of scene to texture (from light's perspective)
         // get light projection/view matrix.
@@ -591,6 +615,11 @@ int main()
 		glm::mat4 model;
 		glm::mat4 view = camera.GetViewMatrix();
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+
+        // draw the original scene
+        glStencilFunc(GL_ALWAYS, 1, 0xFF);
+        glStencilMask(0x00);
+        glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 
 		// - now render scene from light's point of view
 		depthShader.use();
@@ -636,20 +665,56 @@ int main()
         // draw scene as normal in multisampled buffers
         glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
+        glStencilFunc(GL_ALWAYS, 10, 0xFF);
+        glStencilMask(0xFF);
+    	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+
+		// update the stencil buffer
+		stencilShader.use();
+        stencilShader.setMat4("view", view);
+        stencilShader.setMat4("projection", projection);
+		glBindVertexArray(stencilVAO);
+		model = glm::translate(glm::mat4(), glm::vec3(-2.0f, 0.2f, 3.0f));
+		model = glm::scale(model, glm::vec3(0.185f, 1.0f, 0.12f));
+		stencilShader.setMat4("model", model);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glBindVertexArray(0);
+
+        glStencilFunc(GL_ALWAYS, 0, 0xFF);
+        glStencilMask(0xFF);
+
+		cubeShader.use();
+		cubeShader.setMat4("view", view);
+        cubeShader.setMat4("projection", projection);
+		RenderWall(cubeShader, cubeVAO);
+
+		modelShader.use();
+        modelShader.setMat4("projection", projection);
+        modelShader.setMat4("view", view);
+        model = glm::translate(glm::mat4(), glm::vec3(-3.0f, -0.5f, 2.0f));
+        modelShader.setMat4("model", model);
+        tree.Draw(modelShader);
+
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        glStencilFunc(GL_ALWAYS, 1, 0xFF);
+        glStencilMask(0x00);
+		glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+
+        // draw the original scene
 		cubeShader.use();
 		cubeShader.setMat4("view", view);
         cubeShader.setMat4("projection", projection);
         cubeShader.setVec3("lightPos", lightPos);
         cubeShader.setVec3("viewPos", camera.Position);
-        cubeShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);	
+        cubeShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);			
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, planeTexture);
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, depthMap);
-		
+
 		model = glm::translate(glm::mat4(), glm::vec3(10, 0, -10));
 		cubeShader.setMat4("model", model);
 		cubeShader.setInt("object", 1);
@@ -664,10 +729,8 @@ int main()
 		glBindTexture(GL_TEXTURE_2D, normalMap);
 
 		cubeShader.setInt("object", 2);
-		cubeShader.setMat4("view", view);
 		ourMaze->DrawMaze(cubeShader, cubeVAO);
 		RenderWall(cubeShader, cubeVAO);
-
 		if (mazeMap == false) {
 			ourMaze->DrawMap(camera.Position.x, camera.Position.z);
 		}
@@ -716,15 +779,22 @@ int main()
 		modelShader.setMat4("model", model);
 		palm.Draw(modelShader);
 
-		//triangle.update(camera);
-		triangle.render(camera); 
+		glStencilFunc(GL_EQUAL, 10, 0xFF);
+        glStencilMask(0x00);
+        model = glm::translate(glm::mat4(), glm::vec3(-3.0f, -0.1f, 2.0f));
+        model = glm::rotate(model, glm::radians(180.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+        model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(0.5f, 0.5f, 0.5f));
+        modelShader.setMat4("model", model);
+        glDepthFunc(GL_ALWAYS);
+        tree.Draw(modelShader);
+        glDepthFunc(GL_LESS);
 
-		// Render wave
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		wave_model.buildTessendorfWaveMesh(deltaTime);
-		wave_model.draw(camera, modelScale, lightPos, movePos, SCR_WIDTH, SCR_HEIGHT);
-		glDisable(GL_BLEND);
+        glStencilFunc(GL_ALWAYS, 1, 0xFF);
+        glStencilMask(0x00);
+
+		triangle.update(camera);
+		triangle.render(camera); 
 
 		// Render particle
 		particleShader.use();
@@ -734,6 +804,13 @@ int main()
 		glm::vec3 velocity(-5.0f, 5.0f, -5.0f);
 		Particles.Draw();
 		Particles.Update(particleShader, deltaTime, particlePosition, 200, velocity);
+
+		// Render wave
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		wave_model.buildTessendorfWaveMesh(deltaTime);
+		wave_model.draw(camera, modelScale, lightPos, movePos, SCR_WIDTH, SCR_HEIGHT);
+		glDisable(GL_BLEND);
 
 		// Render skybox
 		// change depth function so depth test passes when values are equal to depth buffer's content
@@ -775,17 +852,24 @@ int main()
         glBindTexture(GL_TEXTURE_2D, screenTexture); // use the now resolved color attachment as the quad's texture
         glDrawArrays(GL_TRIANGLES, 0, 6);
 
+        glStencilMask(0xFF);
+
         // Swap the buffers
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
 
 	glDeleteVertexArrays(1, &cubeVAO);
-	glDeleteVertexArrays(1, &skyboxVAO);
 	glDeleteBuffers(1, &cubeVBO);
-	glDeleteBuffers(1, &skyboxVAO);
+	glDeleteVertexArrays(1, &skyboxVAO);
+	glDeleteBuffers(1, &skyboxVBO);
 	glDeleteVertexArrays(1, &planeVAO);
 	glDeleteVertexArrays(1, &planeVBO);
+	glDeleteVertexArrays(1, &quadVAO);
+	glDeleteBuffers(1, &quadVBO);
+	glDeleteVertexArrays(1, &stencilVAO);
+	glDeleteBuffers(1, &stencilVBO);
+
 	glfwTerminate();
 
 	delete ourMaze;

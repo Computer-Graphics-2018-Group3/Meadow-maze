@@ -77,7 +77,7 @@ void main()
 	specCoeff = clamp(specCoeff, 0, 1);
 	combinedColor *= (1 - specCoeff);
 	combinedColor += specular;	
-	color = vec4(combinedColor, 0.8f); 
+	color = vec4(combinedColor, 0.65f); 
 	
 	//color = vec4(sprayColor, 1.0f); 
 	//color = vec4(heightColor, 1.0f); 
