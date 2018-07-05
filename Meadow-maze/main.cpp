@@ -779,7 +779,6 @@ int main()
 		modelShader.setMat4("model", model);
 		palm.Draw(modelShader);
 
-		// Render reflection
 		glStencilFunc(GL_EQUAL, 10, 0xFF);
         glStencilMask(0x00);
         model = glm::translate(glm::mat4(), glm::vec3(-3.0f, -0.1f, 2.0f));
@@ -794,7 +793,7 @@ int main()
         glStencilFunc(GL_ALWAYS, 1, 0xFF);
         glStencilMask(0x00);
 
-        // Render skeleton animation
+		triangle.update(camera);
 		triangle.render(camera); 
 
 		// Render particle

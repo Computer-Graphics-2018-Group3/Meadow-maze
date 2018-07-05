@@ -42,7 +42,6 @@ public:
     float Zoom;
     float downSpeed;
     float acceleration;
-    bool isJumping;
 
     //帧与帧时间差
     float deltaTime = 0.0f;
@@ -57,7 +56,6 @@ public:
         Pitch = pitch;
         downSpeed = 0.0f;
         acceleration = 0.028f;
-        isJumping = false;
         updateCameraVectors();
     }
     // Constructor with scalar values
@@ -84,7 +82,6 @@ public:
         if (Position.y <= 0.0f) {
             downSpeed = 0.0f;
             Position.y = 0.0f;
-            isJumping = false;
         }
         return glm::lookAt(Position, Position + Front, Up);
     }
@@ -93,10 +90,9 @@ public:
     void ProcessKeyboard(Camera_Movement direction, float deltaTime)
     {
         float velocity = MovementSpeed * deltaTime;
-        if (direction == JUMP && isJumping == false) {
+        if (direction == JUMP && Position.y == 0.0f) {
             downSpeed -= 0.0215f;
             Position.y += 1e-6f;
-            isJumping = true;
         }
         if (direction == FORWARD)
             Position += Front * velocity;
